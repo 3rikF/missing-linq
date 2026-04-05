@@ -4,6 +4,24 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <Title>Missing Linq</Title>
+    <Description>MissingLinq is a lightweight .NET library that fills the gaps in LINQ by providing commonly needed extension methods that are not part of the standard System.Linq namespace.</Description>
+    <Company>-</Company>
+    <Authors>Erik Forwerk</Authors>
+    <Copyright>Copyright © 2026 Erik Forwerk</Copyright>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageProjectUrl>https://github.com/3rikF/wpf-localization</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/3rikF/wpf-localization</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>linq;extensions;tools;</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
 
 </Project>
