@@ -1,5 +1,10 @@
 # ErikForwerk.MissingLinq
 
+[![Current Repository Status](https://github.com/3rikF/missing-linq/actions/workflows/dotnet_build-test-pack-publish.yml/badge.svg)](https://github.com/3rikF/missing-linq/actions/workflows/dotnet_build-test-pack-publish.yml)
+[![Codecov Test Coverage](https://codecov.io/gh/3rikF/missing-linq/graph/badge.svg?token=TODO)](https://codecov.io/gh/3rikF/missing-linq)
+[![NuGet](https://img.shields.io/nuget/v/ErikForwerk.MissingLinq?label=NuGet%20MissingLinq)](https://www.nuget.org/packages/ErikForwerk.MissingLinq/)
+[![wakatime](https://wakatime.com/badge/user/ccce5eac-49f0-481f-998c-1183a3cd0b18/project/6290fc86-d37d-4303-87ea-499efdba7fb9.svg)](https://wakatime.com/badge/user/ccce5eac-49f0-481f-998c-1183a3cd0b18/project/6290fc86-d37d-4303-87ea-499efdba7fb9)
+
 ---
 
 ## What is MissingLinq?
