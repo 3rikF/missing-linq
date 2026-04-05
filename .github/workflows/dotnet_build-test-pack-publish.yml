@@ -19,7 +19,7 @@ on:
 
 env:
   SOLUTION_NAME: "./ErikForwerk.MissingLinq.slnx"
-  NUGET_PACKAGE_PROJECT: "./Source/ErikForwerk.Localization.WPF/ErikForwerk.Localization.WPF.csproj"
+  NUGET_PACKAGE_PROJECT: "./Source/ErikForwerk.MissingLinq/ErikForwerk.MissingLinq.csproj"
 
 jobs:
 
