@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/Benchmarks/">
+    <Project Path="Benchmarks/ErikForwerk.MissingLinq.Benchmark/ErikForwerk.MissingLinq.Benchmark.csproj" />
+  </Folder>
+  <Folder Name="/GitHub/">
+    <File Path="README.md" />
+  </Folder>
+  <Folder Name="/UnitTests/">
+    <Project Path="UnitTests/ErikForwerk.MissingLinq.Tests/ErikForwerk.MissingLinq.Tests.csproj" Id="e05e8888-e904-4d8a-a9aa-846c407ec9a0" />
+  </Folder>
+  <Project Path="Source/ErikForwerk.MissingLinq/ErikForwerk.MissingLinq.csproj" />
+</Solution>
