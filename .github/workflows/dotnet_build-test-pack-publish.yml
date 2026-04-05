@@ -1,0 +1,208 @@
+name: .NET Core Desktop
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: 'Version bump type'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+          - major
+          - minor
+          - patch
+
+jobs:
+
+  #----------------------------------------------------------------------------------------------------------------------------------------
+  build:
+
+    strategy:
+      matrix:
+        CONFIGURATION: [Debug, Release]
+
+    # For a list of available runner types, refer to
+    # https://help.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idruns-on
+    runs-on: windows-latest
+
+    permissions:
+      contents: read  # Required to checkout code
+
+    env:
+      # Replace with your solution name, i.e. MyWpfApp.sln.
+      SOLUTION_NAME: "./ErikForwerk.MissingLinq.slnx"
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    # Install the .NET Core workload
+    - name: Install .NET Core
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 10.0.x
+
+    # Add  MSBuild to the PATH: https://github.com/microsoft/setup-msbuild
+    - name: Setup MSBuild.exe
+      uses: microsoft/setup-msbuild@v2
+
+    # Restore the application
+    - name: Restore the application
+      run: dotnet restore $env:SOLUTION_NAME
+
+    # Build the solution
+    - name: Build solution
+      run: dotnet build $env:SOLUTION_NAME --configuration $env:Configuration --no-restore
+      env:
+        Configuration: ${{ matrix.CONFIGURATION }}
+
+    # Execute all unit tests in the solution without rebuilding
+    - name: Execute unit tests
+      run: dotnet test $env:SOLUTION_NAME --configuration $env:Configuration --no-build --collect:"XPlat Code Coverage;Format=json,cobertura"
+      env:
+        Configuration: ${{ matrix.CONFIGURATION }}
+
+    # taken from a Codecov example
+    - name: Upload coverage reports to Codecov
+      uses: codecov/codecov-action@v5
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        files: ./TestResults/**/*.cobertura.xml
+        flags: unittests
+    #   name: codecov-umbrella
+
+
+  #----------------------------------------------------------------------------------------------------------------------------------------
+  publish:
+    needs: build
+    # Only run on main branch when tests are successful
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write  # Required to create and push tags
+      packages: write  # Required for publishing packages
+
+    env:
+      SOLUTION_NAME: "./WpfLocalizationTest.slnx"
+      PROJECT_PATH: "./Source/ErikForwerk.Localization.WPF/ErikForwerk.Localization.WPF.csproj"
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    # Install the .NET Core workload
+    - name: Install .NET Core
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 10.0.x
+
+    # Determine the latest version tag and calculate new version
+    - name: Determine new version
+      id: version
+      shell: bash # Explizit Bash verwenden
+      run: |
+        # Bash-Logic for determine the new version
+        # ------------------------------------
+
+        # 1. Determine tags
+        git fetch --tags
+
+        # 2. Find latest SemVer-tag (sort and thake the latest version)
+        latestTag=$(git tag -l "v*.*.*" | sort -V | tail -n 1)
+
+        if [ -z "$latestTag" ]; then
+          # No tag found,start with v0.0.0
+          latestTag="v0.0.0"
+        fi
+
+        # 3. Extract version components
+        # remove the 'v' and split version
+        version=${latestTag#v}
+        IFS='.' read -r major minor patch <<< "$version"
+
+        # 4. Determine version bump-type (fallback to 'patch')
+        bump_type="${{ github.event.inputs.bump }}"
+        if [ -z "$bump_type" ]; then
+          bump_type="patch"
+        fi
+
+        # 5. Increase version (Bash case-statement)
+        case "$bump_type" in
+          major)
+            major=$((major + 1))
+            minor=0
+            patch=0
+            ;;
+          minor)
+            minor=$((minor + 1))
+            patch=0
+            ;;
+          patch)
+            patch=$((patch + 1))
+            ;;
+        esac
+
+        newVersion="$major.$minor.$patch"
+        newTag="v$newVersion"
+
+        # 6. Output to log
+        echo "Previous version: $latestTag"
+        echo "New version: $newTag"
+
+        # 7. Output for subsequent steps (Bash-syntax)
+        echo "version=$newVersion" >> $GITHUB_OUTPUT
+        echo "tag=$newTag" >> $GITHUB_OUTPUT
+
+    # Create and push new version tag
+    - name: Create version tag
+      shell: bash
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        git tag ${{ steps.version.outputs.tag }}
+        git push origin ${{ steps.version.outputs.tag }}
+
+    # Build the solution with new version
+    - name: Build solution
+      shell: bash
+      run: dotnet build $PROJECT_PATH --configuration Release /p:Version=${{ steps.version.outputs.version }} /p:EnableWindowsTargeting=true
+
+    # Pack the NuGet package
+    - name: Pack NuGet package
+      id: pack
+      shell: bash
+      run: |
+        PACKAGE_VERSION="${{ steps.version.outputs.version }}"
+        # Pack NuGet package using dotnet pack
+        dotnet pack $PROJECT_PATH --configuration Release --no-build /p:PackageVersion=$PACKAGE_VERSION --output ./nupkg /p:EnableWindowsTargeting=true
+
+        # Determine and store the package name for the push-step (fail-safe)
+        PACKAGE_NAME=$(basename $PROJECT_PATH .csproj | sed 's/\.csproj$//')
+        NUPKG_PATH="./nupkg/${PACKAGE_NAME}.${PACKAGE_VERSION}.nupkg"
+
+        # Output for subsequent steps (Bash-syntax)
+        echo "nupkg_path=$NUPKG_PATH" >> $GITHUB_OUTPUT
+
+    # Publish to NuGet (Fail-Safe)
+    - name: Publish to NuGet (Fail-Safe)
+      shell: bash
+      run: |
+        if dotnet nuget push ${{ steps.pack.outputs.nupkg_path }} --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate; then
+          echo "Published package: ${{ steps.pack.outputs.nupkg_path }}"
+          PACKAGE_NAME=$(basename "$PROJECT_PATH" .csproj)
+          PACKAGE_VERSION="${{ steps.version.outputs.version }}"
+          echo "Check online status at: https://www.nuget.org/packages/${PACKAGE_NAME}/${PACKAGE_VERSION}"
+        else
+          echo "::error::Failed to publish package: ${{ steps.pack.outputs.nupkg_path }}"
+          exit 1
+        fi
