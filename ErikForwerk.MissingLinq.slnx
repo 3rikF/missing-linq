@@ -3,6 +3,7 @@
     <Project Path="Benchmarks/ErikForwerk.MissingLinq.Benchmark/ErikForwerk.MissingLinq.Benchmark.csproj" />
   </Folder>
   <Folder Name="/GitHub/">
+    <File Path=".github/workflows/dotnet_build-test-pack-publish.yml" />
     <File Path="README.md" />
   </Folder>
   <Folder Name="/UnitTests/">

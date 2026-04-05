@@ -17,6 +17,10 @@ on:
           - minor
           - patch
 
+env:
+  SOLUTION_NAME: "./ErikForwerk.MissingLinq.slnx"
+  NUGET_PACKAGE_PROJECT: "./Source/ErikForwerk.Localization.WPF/ErikForwerk.Localization.WPF.csproj"
+
 jobs:
 
   #----------------------------------------------------------------------------------------------------------------------------------------
@@ -32,10 +36,6 @@ jobs:
 
     permissions:
       contents: read  # Required to checkout code
-
-    env:
-      # Replace with your solution name, i.e. MyWpfApp.sln.
-      SOLUTION_NAME: "./ErikForwerk.MissingLinq.slnx"
 
     steps:
     - name: Checkout
@@ -89,10 +89,6 @@ jobs:
     permissions:
       contents: write  # Required to create and push tags
       packages: write  # Required for publishing packages
-
-    env:
-      SOLUTION_NAME: "./WpfLocalizationTest.slnx"
-      PROJECT_PATH: "./Source/ErikForwerk.Localization.WPF/ErikForwerk.Localization.WPF.csproj"
 
     steps:
     - name: Checkout
@@ -172,10 +168,10 @@ jobs:
         git tag ${{ steps.version.outputs.tag }}
         git push origin ${{ steps.version.outputs.tag }}
 
-    # Build the solution with new version
-    - name: Build solution
+    # Build the NuGet-package project with new version
+    - name: Build NuGet package
       shell: bash
-      run: dotnet build $PROJECT_PATH --configuration Release /p:Version=${{ steps.version.outputs.version }} /p:EnableWindowsTargeting=true
+      run: dotnet build $NUGET_PACKAGE_PROJECT --configuration Release /p:Version=${{ steps.version.outputs.version }} /p:EnableWindowsTargeting=true
 
     # Pack the NuGet package
     - name: Pack NuGet package
@@ -184,10 +180,10 @@ jobs:
       run: |
         PACKAGE_VERSION="${{ steps.version.outputs.version }}"
         # Pack NuGet package using dotnet pack
-        dotnet pack $PROJECT_PATH --configuration Release --no-build /p:PackageVersion=$PACKAGE_VERSION --output ./nupkg /p:EnableWindowsTargeting=true
+        dotnet pack $NUGET_PACKAGE_PROJECT --configuration Release --no-build /p:PackageVersion=$PACKAGE_VERSION --output ./nupkg /p:EnableWindowsTargeting=true
 
         # Determine and store the package name for the push-step (fail-safe)
-        PACKAGE_NAME=$(basename $PROJECT_PATH .csproj | sed 's/\.csproj$//')
+        PACKAGE_NAME=$(basename $NUGET_PACKAGE_PROJECT .csproj | sed 's/\.csproj$//')
         NUPKG_PATH="./nupkg/${PACKAGE_NAME}.${PACKAGE_VERSION}.nupkg"
 
         # Output for subsequent steps (Bash-syntax)
@@ -199,7 +195,7 @@ jobs:
       run: |
         if dotnet nuget push ${{ steps.pack.outputs.nupkg_path }} --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate; then
           echo "Published package: ${{ steps.pack.outputs.nupkg_path }}"
-          PACKAGE_NAME=$(basename "$PROJECT_PATH" .csproj)
+          PACKAGE_NAME=$(basename "$NUGET_PACKAGE_PROJECT" .csproj)
           PACKAGE_VERSION="${{ steps.version.outputs.version }}"
           echo "Check online status at: https://www.nuget.org/packages/${PACKAGE_NAME}/${PACKAGE_VERSION}"
         else
