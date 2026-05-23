@@ -62,7 +62,12 @@ public static class EnumerableExtensions
 	/// and the second with elements for which the predicate returns <see langword="false"/>.
 	/// </returns>
 	public static (IEnumerable<TItem> TrueItems, IEnumerable<TItem> FalseItems) Split<TItem>(this IEnumerable<TItem> source, Func<TItem, bool> predicate)
-		=> (source.Where(predicate), source.Where(item => !predicate(item)));
+	{
+		ArgumentNullException.ThrowIfNull(source);
+		ArgumentNullException.ThrowIfNull(predicate);
+
+		return (source.Where(predicate), source.Where(item => !predicate(item)));
+	}
 
 	#endregion Split
 

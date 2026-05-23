@@ -1,8 +1,13 @@
+
+using ErikForwerk.TestAbstractions.Models;
+
+using Xunit.Abstractions;
+
 //-----------------------------------------------------------------------------------------------------------------------------------------
 namespace ErikForwerk.MissingLinq.Tests;
 
 //-----------------------------------------------------------------------------------------------------------------------------------------
-public sealed class JoinStringsTests
+public sealed class JoinStringsTests(ITestOutputHelper toh) : TestBase(toh)
 {
 	//-----------------------------------------------------------------------------------------------------------------
 	#region Test Data
@@ -24,10 +29,10 @@ public sealed class JoinStringsTests
 		{ [],				',',	""		},
 	};
 
-	public static TheoryData<IEnumerable<string>?, string?, string?> JoinWithStringSeparatorInvalidData => new()
+	public static TheoryData<string[]?, string?, string?> JoinWithStringSeparatorInvalidData => new()
 	{
-		{ null!,		", ",	"source"		},
-		{ ["a", "b"],	null!,	"separator"	},
+		{ null,			", ",	"source"	},
+		{ ["a", "b"],	null,	"separator"	},
 	};
 
 	#endregion Test Data
@@ -54,7 +59,7 @@ public sealed class JoinStringsTests
 
 	[Theory]
 	[MemberData(nameof(JoinWithStringSeparatorValidData))]
-	public void Join_WithStringSeparator_ReturnsExpectedResult(IEnumerable<string> source, string separator, string expected)
+	public void Join_WithStringSeparator_ReturnsExpectedResult(string[] source, string separator, string expected)
 	{
 		//--- ARRANGE ---------------------------------------------------------
 
@@ -67,16 +72,20 @@ public sealed class JoinStringsTests
 
 	[Theory]
 	[MemberData(nameof(JoinWithStringSeparatorInvalidData))]
-	public void Join_WithStringSeparator_WithNullArguments_ThrowsArgumentNullException(IEnumerable<string> source, string separator, string expectedParamName)
+	public void Join_WithStringSeparator_WithNullArguments_ThrowsArgumentNullException(string[]? source, string? separator, string? expectedParamName)
 	{
 		//--- ARRANGE ---------------------------------------------------------
+		TestConsole.WriteLine($"Testing with source     {B(source)}");
+		TestConsole.WriteLine($"Testing with separator  {B(separator)}");
 
 		//--- ACT -------------------------------------------------------------
 		ArgumentNullException ex = Assert.Throws<ArgumentNullException>(
-			() => source.Join(separator));
+			() => source!.Join(separator!));
 
 		//--- ASSERT ----------------------------------------------------------
 		Assert.Equal(expectedParamName, ex.ParamName);
+
+		TestConsole.WriteLine($"[✔️ PASSED] Caught expected exception with parameter name: {B(ex.ParamName)}");
 	}
 
 	#endregion Test Methods: Join (string separator)
