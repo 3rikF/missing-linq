@@ -95,4 +95,24 @@ public static class EnumerableExtensions
 		=> collection is null || !collection.Any();
 
 	#endregion Neue Region
+
+	//-----------------------------------------------------------------------------------------------------------------
+	#region Join Strings
+
+	public static string Join(this IEnumerable<string> source, string separator)
+	{
+		ArgumentNullException.ThrowIfNull(source);
+		ArgumentNullException.ThrowIfNull(separator);
+
+		return string.Join(separator, source);
+	}
+
+	public static string Join(this IEnumerable<string> source, char separator)
+	{
+		ArgumentNullException.ThrowIfNull(source);
+
+		return string.Join(separator, source);
+	}
+
+	#endregion Join Strings
 }
