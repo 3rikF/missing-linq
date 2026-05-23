@@ -3,7 +3,7 @@
 namespace ErikForwerk.MissingLinq.Tests;
 
 //-----------------------------------------------------------------------------------------------------------------------------------------
-public sealed class EnumerableExtensionsSplitTests
+public sealed class SplitTests
 {
 	//-----------------------------------------------------------------------------------------------------------------
 	#region Test Data

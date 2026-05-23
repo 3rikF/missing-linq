@@ -7,7 +7,7 @@ namespace SplitBenchmark;
 
 //-----------------------------------------------------------------------------------------------------------------------------------------
 [MemoryDiagnoser]
-public class MissingLinqExtensionBenchmark
+public class SplitExtensionBenchmark
 {
 	private readonly Random _random				= new (42);
 	private int[] _arrayData					= [];
@@ -36,7 +36,7 @@ public class MissingLinqExtensionBenchmark
 	[Benchmark]
 	public (IEnumerable<int> TrueItems, IEnumerable<int> FalseItems) Split_Enumerable_OnList()
 		=> _listData.Split(x => x % 2 == 0);
-	
+
 	[Benchmark]
 	public (IEnumerable<int> TrueItems, IEnumerable<int> FalseItems) Split_Enumerable_OnEnumerable()
 		=> _enumerableData.Split(x => x % 2 == 0);
