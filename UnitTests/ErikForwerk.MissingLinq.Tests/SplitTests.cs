@@ -1,12 +1,19 @@
 
 //-----------------------------------------------------------------------------------------------------------------------------------------
+using ErikForwerk.TestAbstractions.Models;
+
+using Xunit.Abstractions;
+
 namespace ErikForwerk.MissingLinq.Tests;
 
 //-----------------------------------------------------------------------------------------------------------------------------------------
-public sealed class SplitTests
+public sealed class SplitTests(ITestOutputHelper toh) : TestBase(toh)
 {
 	//-----------------------------------------------------------------------------------------------------------------
 	#region Test Data
+
+	private static bool IsEven(int value)
+		=> value % 2 == 0;
 
 	public static TheoryData<int[], int[], int[]> ArraySplitValidData => new()
 	{
@@ -17,14 +24,21 @@ public sealed class SplitTests
 
 	public static TheoryData<int[], Func<int, bool>, string> ArraySplitInvalidData => new()
 	{
-		{ null!,		x => x > 0, "source"},
-		{ [1, 2, 3],	null!,		"predicate"},
+		// source,		predicate,				expected Exception-param name
+		{ null!,		FailTest<int, bool>,	"source"},
+		{ [1, 2, 3],	null!,					"predicate"},
 	};
 
 	#endregion Test Data
 
 	//-----------------------------------------------------------------------------------------------------------------
 	#region Meta Tests
+
+	[Theory]
+	[InlineData(0, true)]
+	[InlineData(1, false)]
+	public void IsEven_ReturnsExpectedResult(int value, bool expected)
+		=> Assert.Equal(expected, IsEven(value));
 
 	[Fact]
 	public void ArraySplitValidData_HasData()
@@ -44,9 +58,10 @@ public sealed class SplitTests
 	public void Split_Array_WithValidData_ReturnsCorrectPartitions(int[] source, int[] expectedTrue, int[] expectedFalse)
 	{
 		//--- ARRANGE ---------------------------------------------------------
+		TestConsole.WriteLine($"Testing with source {B(source?.GetType())}");
 
 		//--- ACT -------------------------------------------------------------
-		(int[]? trueItems, int[]? falseItems) = source.Split(x => x % 2 == 0);
+		(int[]? trueItems, int[]? falseItems) = source.Split(IsEven);
 
 		//--- ASSERT ----------------------------------------------------------
 		Assert.Equal(expectedTrue,	trueItems.Order());
@@ -75,7 +90,7 @@ public sealed class SplitTests
 		int[] source = [1, 2, 3, 4, 5];
 
 		//--- ACT -------------------------------------------------------------
-		source.Split(x => x % 2 == 0, sortInPlace: true);
+		_ = source.Split(IsEven, sortInPlace: true);
 
 		//--- ASSERT ----------------------------------------------------------
 		Assert.NotEqual([1, 2, 3, 4, 5], source);
@@ -91,9 +106,16 @@ public sealed class SplitTests
 	public void Split_IEnumerable_WithValidData_ReturnsCorrectPartitions(IEnumerable<int> source, int[] expectedTrue, int[] expectedFalse)
 	{
 		//--- ARRANGE ---------------------------------------------------------
+		TestConsole.WriteLine($"Testing with source {B(source?.GetType())}");
 
 		//--- ACT -------------------------------------------------------------
-		var (trueItems, falseItems) = source.Split(x => x % 2 == 0);
+		var (trueItems, falseItems) = source.Split(IsEven);
+
+		TestConsole.WriteLine($"Expected True       {B(expectedTrue)}");
+		TestConsole.WriteLine($"Actual True         {B(trueItems)}");
+
+		TestConsole.WriteLine($"Expected False      {B(expectedFalse)}");
+		TestConsole.WriteLine($"Actual False        {B(falseItems)}");
 
 		//--- ASSERT ----------------------------------------------------------
 		Assert.Equal(expectedTrue,	trueItems.Order());
@@ -104,6 +126,9 @@ public sealed class SplitTests
 	[MemberData(nameof(ArraySplitInvalidData))]
 	public void Split_IEnumerable_WithNullArguments_ThrowsArgumentNullException(IEnumerable<int> source, Func<int, bool> predicate, string expectedParamName)
 	{
+		//--- ARRANGE ---------------------------------------------------------
+		TestConsole.WriteLine($"Testing with source {B(source?.GetType())}");
+
 		//--- ACT -------------------------------------------------------------
 		ArgumentNullException ex =  Assert.Throws<ArgumentNullException>(
 			() => source.Split(predicate));
