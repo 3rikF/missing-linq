@@ -73,6 +73,29 @@ names.IsNullOrEmpty(); // true
 
 ---
 
+### `Join`
+
+Concatenates the elements of a string sequence into a single `string` — a direct counterpart to `string.Join`, but as a LINQ-style extension method available directly on `IEnumerable<string>`.
+
+| Overload | Description |
+|---|---|
+| `IEnumerable<string>.Join(string separator)` | Concatenates all elements using the specified string separator. |
+| `IEnumerable<string>.Join(char separator)` | Concatenates all elements using the specified character separator. |
+
+```csharp
+string[] words = ["Hello", "World", "foo"];
+
+string result = words.Join(", ");
+// result → "Hello, World, foo"
+
+string csv = words.Join(',');
+// csv → "Hello,World,foo"
+```
+
+> Both overloads throw an `ArgumentNullException` if `source` (or the string `separator`) is `null`.
+
+---
+
 ## Project Structure
 
 ```
