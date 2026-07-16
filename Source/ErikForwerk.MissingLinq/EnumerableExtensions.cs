@@ -1,5 +1,7 @@
 ﻿
 //-----------------------------------------------------------------------------------------------------------------------------------------
+using System.Diagnostics.CodeAnalysis;
+
 namespace ErikForwerk.MissingLinq;
 
 //-----------------------------------------------------------------------------------------------------------------------------------------
@@ -78,7 +80,7 @@ public static class EnumerableExtensions
 	/// <typeparam name="T">The type of the elements in the array.</typeparam>
 	/// <param name="array">The array to check for <see langword="null"/> or emptiness.</param>
 	/// <returns><see langword="true"/> if the array is <see langword="null"/> or has a <see cref="Array.Length"/> of 0; otherwise, <see langword="false"/>.</returns>
-	public static bool IsNullOrEmpty<T>(this T[]? array)
+	public static bool IsNullOrEmpty<T>([NotNullWhen(false)]this T[]? array)
 		=> array is null || array.Length == 0;
 
 	/// <summary>
@@ -87,7 +89,7 @@ public static class EnumerableExtensions
 	/// <typeparam name="T">The type of elements in the list.</typeparam>
 	/// <param name="list">The list to check for <see langword="null"/> or emptiness.</param>
 	/// <returns><see langword="true"/> if the list is <see langword="null"/> or has a <see cref="IList.Count"/> of 0; otherwise, <see langword="false"/>.</returns>
-	public static bool IsNullOrEmpty<T>(this IList<T>? list)
+	public static bool IsNullOrEmpty<T>([NotNullWhen(false)]this IList<T>? list)
 		=> list is null || list.Count == 0;
 
 	/// <summary>
@@ -96,7 +98,7 @@ public static class EnumerableExtensions
 	/// <typeparam name="T">The type of elements in the collection.</typeparam>
 	/// <param name="collection">The collection to check for <see langword="null"/> or emptiness.</param>
 	/// <returns><see langword="true"/> if the collection is <see langword="null"/> or contains no elements; otherwise, <see langword="false"/>.</returns>
-	public static bool IsNullOrEmpty<T>(this IEnumerable<T>? collection)
+	public static bool IsNullOrEmpty<T>([NotNullWhen(false)]this IEnumerable<T>? collection)
 		=> collection is null || !collection.Any();
 
 	#endregion Neue Region
